@@ -5,9 +5,8 @@ const conn = require("../config");
 const router = express.Router();
 
 router.post("/lifeConcierge/api/signup", (req,res)=>{
-  const sql = "insert into userinfo values (null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), 0, null);";
-  const params = [req.body.email, req.body.pw, req.body.name, req.body.gender, req.body.birthday, req.body.job, req.body.hAddr, req.body.cAddr, req.body.disease, 
-    req.body.transpo, req.body.hobby, req.body.food, req.body.drink, req.body.mbti, req.body.fashion, req.body.music
+  const sql = "insert into userinfo values (null, ?, ?, ?, ?, ?, ?, ?, now(), 0, null);";
+  const params = [req.body.email, req.body.pw, req.body.name, req.body.hAddr, req.body.cAddr, req.body.birthday, req.body.gender,
   ]
   console.log(params);
 
@@ -86,21 +85,22 @@ router.post('/lifeConcierge/api/addEvent', (req,res)=> {
   const content = req.body.content;
   const preAlarm = req.body.preAlarm;
   const checkSpecial = req.body.checkSpecial;
-  const tag = JSON.stringify(req.body.tag);
-  const tag2 = JSON.stringify(req.body.tag2);
+  // 태그 이름, 색 받아오자
+  const tag =req.body.tag;
+  const color = req.body.color;
   const cateList = JSON.stringify(req.body.cateList);
   const checkWeeks = JSON.stringify(req.body.checkWeeks);
   
-  const confirm = [email, start, end, title, sLocation, eLocation, content, preAlarm,  checkSpecial, tag, tag2, cateList, checkWeeks]
+  const confirm = [email, start, end, title, sLocation, eLocation, content, preAlarm,  checkSpecial, tag, color, cateList, checkWeeks]
   console.log(confirm)
 
   if(req.body.tag.tagName !== '데일리루틴') {
     // const sql = "insert into specialevent values(?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?, ?, ?)";
     const sql = `INSERT INTO specialevent(email, start, sTime, end, eTime, title, 
               sLocation, eLocation, moveTime, content, preAlarm, checkSpecial, 
-              tag, tag2, cateList)
+              tag, color, cateList)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?,	?, ?, ?, ?, ?)`;
-    const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, content, preAlarm, checkSpecial, tag, tag2, cateList];
+    const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, content, preAlarm, checkSpecial, tag, color, cateList];
     conn.query(sql, params, (err, rows)=>{
       if(err){
         console.log(err);
@@ -114,7 +114,7 @@ router.post('/lifeConcierge/api/addEvent', (req,res)=> {
     });
   } else {
     const sql = "insert into dailyevent values(?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?, ?, ?)";
-    const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, content, preAlarm, tag, tag2, cateList, checkWeeks];
+    const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, content, preAlarm, tag, color, cateList, checkWeeks];
     conn.query(sql, params, (err, rows)=>{
       if(err){
         console.log(err);
@@ -157,14 +157,14 @@ router.post('/lifeConcierge/api/showSpecialEvent', (req, res) => {
     } else if (rows.length==0) {
       res.send("없는 계정");
     } else {
-      let events = rows.map((data) => {
-        if (data.tag) {
-          let tempData = {...data, color: data.tag.slice(-9,-2)}
-          return tempData
-        }
-        return data
-      })
-      res.send(events);
+      // let events = rows.map((data) => {
+      //   if (data.tag) {
+      //     let tempData = {...data, color: data.tag.slice(-9,-2)}
+      //     return tempData
+      //   }
+      //   return data
+      // })
+      res.send(rows);
     }
   })
 });
@@ -196,13 +196,13 @@ router.post('/lifeConcierge/api/UpdateEvent', (req, res) => {
   const content = req.body.content;
   const preAlarm = req.body.preAlarm;
   const checkSpecial = req.body.checkSpecial;
-  const tag = JSON.stringify(req.body.tag);
-  const tag2 = JSON.stringify(req.body.tag2);
+  const tag = req.body.tag;
+  const color = req.body.color;
   const cateList = JSON.stringify(req.body.cateList);
   const eventId = req.body.event_id;
   
   const params = [start, sTime, end, eTime, title, sLocation, eLocation,
-              content, preAlarm, checkSpecial, tag, tag2, cateList, eventId].map(
+              content, preAlarm, checkSpecial, tag, color, cateList, eventId].map(
                 (data) => {
                   return data ? data : null
                 }
@@ -210,7 +210,7 @@ router.post('/lifeConcierge/api/UpdateEvent', (req, res) => {
   console.log(params)
   const sql = `update specialevent set start=?, sTime=?, end=?, eTime=?, 
             title=?, sLocation=?, eLocation=?, content=?, preAlarm=?,
-            checkSpecial=?, tag=?, tag2=?, cateList=?
+            checkSpecial=?, tag=?, color=?, cateList=?
             where event_id=?`;
   conn.query(sql, params, (err, rows) => {
     if(err) {
