@@ -18,7 +18,7 @@ import time#딜레이
 def main(sName,eName):
     # 드라이버로 링크 접속 sName은 출발지 eName은 도착지
     driver.get(f'http://map.kakao.com/?sName={sName}&eName={eName}')
-    time.sleep(3) #second
+    time.sleep(2) #second
     # xpath 이용 태그 가져오기
     # 자가용
     print(driver.find_element(By.XPATH, '//*[@id="info.flagsearch"]/div[6]/ul/li/div[1]/div/div[1]/p/span[1]').text)

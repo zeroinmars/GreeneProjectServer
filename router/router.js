@@ -6,9 +6,7 @@ const router = express.Router();
 
 router.post("/lifeConcierge/api/signup", (req, res) => {
   const sql = "insert into userinfo values (null, ?, ?, ?, ?, ?, ?, ?, now(), 0, null);";
-  const params = [req.body.email, req.body.pw, req.body.name, req.body.hAddr, req.body.cAddr, req.body.birthday, req.body.gender,
-  ]
-  console.log(params);
+  const params = [req.body.email, req.body.pw, req.body.name, req.body.gender, req.body.birthday, req.body.hAddr, req.body.cAddr];
 
   conn.query(sql, params, (err, rows) => {
     if (err) {
@@ -19,9 +17,9 @@ router.post("/lifeConcierge/api/signup", (req, res) => {
       res.json(err);
     } else {
       console.log(rows);
-      res.json(rows)
+      res.json(rows);
     }
-  })
+  });
 });
 
 router.post("/lifeConcierge/api/login", (req, res) => {
@@ -59,6 +57,20 @@ router.get('/lifeConcierge/api/userInfo', (req, res) => {
   })
 });
 
+router.post('/lifeConcierge/api/loginUserInfo', (req, res) => {
+  const email = req.body.email;
+  const sql = 'SELECT name FROM userinfo WHERE email=?';
+  conn.query(sql, [email], (err, row) => {
+    if (err) {
+      res.send(err);
+    } else if (!row.length){
+      console.log('유저가 없습니다');
+    } else {
+      res.send(row[0]);
+    }
+  });
+});
+
 router.post('/lifeConcierge/api/userDelete', (req, res) => {
   const email = req.body.email;
   conn.query('update userinfo set isDeleted = 1 where email = ?', [email], (err, rows) => {
@@ -73,7 +85,6 @@ router.post('/lifeConcierge/api/userDelete', (req, res) => {
 });
 
 router.post('/lifeConcierge/api/addEvent', (req, res) => {
-  // const moveTime = 크롤링한 값
   const email = req.body.email;
   const start = req.body.start;
   const sTime = req.body.sTime;
@@ -85,44 +96,44 @@ router.post('/lifeConcierge/api/addEvent', (req, res) => {
   const content = req.body.content;
   const preAlarm = req.body.preAlarm;
   const checkSpecial = req.body.checkSpecial;
-  // 태그 이름, 색 받아오자
   const tag = req.body.tag;
   const color = req.body.color;
   const cateList = JSON.stringify(req.body.cateList);
   const checkWeeks = JSON.stringify(req.body.checkWeeks);
+  let moveTime = null;
 
+  if (tag !== '데일리루틴') {
+    if (sLocation && eLocation) {
+      const result = spawn("python", ["map.py", sLocation, eLocation]);
+      console.log('파이썬 파일 변수 선언 성공');
+      result.stdout.on("data", (result) => {
+        console.log('stdout 진입 성공');
+        console.log('result : ' + result.toString());
+        console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
+        moveTime = result.toString().trim();
 
-  // const result = spawn("python", ["map.py", sLocation, eLocation]);
-  // console.log('파이썬 파일 변수 선언 성공')
-  // result.stdout.on("data", (result) => {
-  //   console.log('stdout 진입 성공');
-  //   console.log('result : ' + result.toString());
-  //   console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
-  //   const moveTime = result.toString();
-
-  // })
-
-
-  const confirm = [email, start, end, title, sLocation, eLocation, content, preAlarm, checkSpecial, tag, color, cateList, checkWeeks]
-  console.log(confirm)
-
-
-  if (req.body.tag.tagName !== '데일리루틴') {
-    
-    const result = spawn("python", ["map.py", sLocation, eLocation]);
-    console.log('파이썬 파일 변수 선언 성공')
-    result.stdout.on("data", (result) => {
-      console.log('stdout 진입 성공');
-      console.log('result : ' + result.toString());
-      console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
-      const moveTime = result.toString().trim();
-      
-
-      // const sql = "insert into specialevent values(?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?, ?, ?)";
-      const sql = `INSERT INTO specialevent(email, start, sTime, end, eTime, title, 
+        const sql = `INSERT INTO specialevent(email, start, sTime, end, eTime, title, 
                 sLocation, eLocation, moveTime, content, preAlarm, checkSpecial, 
                 tag, color, cateList)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,	?, ?, ?, ?, ?)`;
+        const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, moveTime, content, preAlarm, checkSpecial, tag, color, cateList];
+        conn.query(sql, params, (err, rows) => {
+          if (err) {
+            console.log(err);
+            res.send("에러");
+          } else if (rows.length == 0) {
+            console.log("DB 적용 안됨");
+            res.send("DB 적용 안됨");
+          } else {
+            res.send(rows);
+          }
+        });
+      })
+    } else {
+      const sql = `INSERT INTO specialevent(email, start, sTime, end, eTime, title, 
+        sLocation, eLocation, moveTime, content, preAlarm, checkSpecial, 
+        tag, color, cateList)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,	?, ?, ?, ?, ?)`;
       const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, moveTime, content, preAlarm, checkSpecial, tag, color, cateList];
       conn.query(sql, params, (err, rows) => {
         if (err) {
@@ -135,22 +146,50 @@ router.post('/lifeConcierge/api/addEvent', (req, res) => {
           res.send(rows);
         }
       });
-    })
-
+    }
   } else {
-    const sql = "insert into dailyevent values(?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?, ?, ?)";
-    const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, content, preAlarm, tag, color, cateList, checkWeeks];
-    conn.query(sql, params, (err, rows) => {
-      if (err) {
-        console.log(err);
-        res.send("에러");
-      } else if (rows.length == 0) {
-        console.log("DB 적용 안됨");
-        res.send("DB 적용 안됨");
-      } else {
-        res.json(rows);
-      }
-    });
+    const tagName = req.body.tag2;
+    const tagColor = req.body.color2;
+    if (sLocation && eLocation) {
+      const result = spawn("python", ["map.py", sLocation, eLocation]);
+      console.log('파이썬 파일 변수 선언 성공');
+      result.stdout.on("data", (result) => {
+        console.log('stdout 진입 성공');
+        console.log('result : ' + result.toString());
+        console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
+        moveTime = result.toString().trim();
+
+        const sql = "insert into dailyevent values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, moveTime, content, preAlarm, tagName, tagColor, cateList, checkWeeks];
+
+        conn.query(sql, params, (err, rows) => {
+          if (err) {
+            console.log(err);
+            res.send("에러");
+          } else if (rows.length == 0) {
+            console.log("DB 적용 안됨");
+            res.send("DB 적용 안됨");
+          } else {
+            res.json(rows);
+          }
+        });
+      });
+    } else {
+      const sql = "insert into dailyevent values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      const params = [email, start, sTime, end, eTime, title, sLocation, eLocation, moveTime, content, preAlarm, tagName, tagColor, cateList, checkWeeks];
+
+      conn.query(sql, params, (err, rows) => {
+        if (err) {
+          console.log(err);
+          res.send("에러");
+        } else if (rows.length == 0) {
+          console.log("DB 적용 안됨");
+          res.send("DB 적용 안됨");
+        } else {
+          res.json(rows);
+        }
+      });
+    }
   }
 
 });
@@ -225,27 +264,36 @@ router.post('/lifeConcierge/api/UpdateEvent', (req, res) => {
   const color = req.body.color;
   const cateList = JSON.stringify(req.body.cateList);
   const eventId = req.body.event_id;
+  console.log(sLocation, eLocation);
+  const result = spawn("python", ["map.py", sLocation, eLocation]);
+  console.log('파이썬 파일 변수 선언 성공')
+  result.stdout.on("data", (result) => {
+    console.log('stdout 진입 성공');
+    console.log('result : ' + result.toString());
+    console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
+    const moveTime = result.toString().trim();
+    const params = [start, sTime, end, eTime, title, sLocation, eLocation, moveTime,
+      content, preAlarm, checkSpecial, tag, color, cateList, eventId].map(
+        (data) => {
+          return data ? data : null
+        }
+      );
 
-  const params = [start, sTime, end, eTime, title, sLocation, eLocation,
-    content, preAlarm, checkSpecial, tag, color, cateList, eventId].map(
-      (data) => {
-        return data ? data : null
+    const sql = `update specialevent set start=?, sTime=?, end=?, eTime=?, 
+                title=?, sLocation=?, eLocation=?, moveTime=?, content=?, preAlarm=?,
+                checkSpecial=?, tag=?, color=?, cateList=?
+                where event_id=?`;
+    conn.query(sql, params, (err, rows) => {
+      if (err) {
+        res.send(err);
+      } else if (rows.length == 0) {
+        console.log("DB 적용 안됨");
+        res.send("DB 적용 안됨");
+      } else {
+        res.json(rows);
       }
-    );
-  console.log(params)
-  const sql = `update specialevent set start=?, sTime=?, end=?, eTime=?, 
-            title=?, sLocation=?, eLocation=?, content=?, preAlarm=?,
-            checkSpecial=?, tag=?, color=?, cateList=?
-            where event_id=?`;
-  conn.query(sql, params, (err, rows) => {
-    if (err) {
-      res.send(err);
-    } else if (rows.length == 0) {
-      console.log("DB 적용 안됨");
-      res.send("DB 적용 안됨");
-    } else {
-      res.json(rows);
-    }
+    })
+
   });
 }
 )
