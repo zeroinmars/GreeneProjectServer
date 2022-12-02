@@ -265,36 +265,40 @@ router.post('/lifeConcierge/api/UpdateEvent', (req, res) => {
   const cateList = JSON.stringify(req.body.cateList);
   const eventId = req.body.event_id;
   console.log(sLocation, eLocation);
-  const result = spawn("python", ["map.py", sLocation, eLocation]);
-  console.log('파이썬 파일 변수 선언 성공')
-  result.stdout.on("data", (result) => {
-    console.log('stdout 진입 성공');
-    console.log('result : ' + result.toString());
-    console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
-    const moveTime = result.toString().trim();
-    const params = [start, sTime, end, eTime, title, sLocation, eLocation, moveTime,
-      content, preAlarm, checkSpecial, tag, color, cateList, eventId].map(
-        (data) => {
-          return data ? data : null
+
+  if (sLocation && eLocation) {
+    const result = spawn("python", ["map.py", sLocation, eLocation]);
+    console.log('파이썬 파일 변수 선언 성공')
+    
+    result.stdout.on("data", (result) => {
+      console.log('stdout 진입 성공');
+      console.log('result : ' + result.toString());
+      console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${sLocation}, 유저인풋2 : ${eLocation}`);
+      const moveTime = result.toString().trim();
+      const params = [start, sTime, end, eTime, title, sLocation, eLocation, moveTime,
+        content, preAlarm, checkSpecial, tag, color, cateList, eventId].map(
+          (data) => {
+            return data ? data : null
+          }
+        );
+  
+      const sql = `update specialevent set start=?, sTime=?, end=?, eTime=?, 
+                  title=?, sLocation=?, eLocation=?, moveTime=?, content=?, preAlarm=?,
+                  checkSpecial=?, tag=?, color=?, cateList=?
+                  where event_id=?`;
+      conn.query(sql, params, (err, rows) => {
+        if (err) {
+          res.send(err);
+        } else if (rows.length == 0) {
+          console.log("DB 적용 안됨");
+          res.send("DB 적용 안됨");
+        } else {
+          res.json(rows);
         }
-      );
-
-    const sql = `update specialevent set start=?, sTime=?, end=?, eTime=?, 
-                title=?, sLocation=?, eLocation=?, moveTime=?, content=?, preAlarm=?,
-                checkSpecial=?, tag=?, color=?, cateList=?
-                where event_id=?`;
-    conn.query(sql, params, (err, rows) => {
-      if (err) {
-        res.send(err);
-      } else if (rows.length == 0) {
-        console.log("DB 적용 안됨");
-        res.send("DB 적용 안됨");
-      } else {
-        res.json(rows);
-      }
-    })
-
-  });
+      })
+  
+    });
+  }
 }
 )
 router.get("/test", (req, res) => {
