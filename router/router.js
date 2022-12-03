@@ -5,7 +5,7 @@ const conn = require("../config");
 const router = express.Router();
 
 router.post("/lifeConcierge/api/signup", (req, res) => {
-  const sql = "insert into userinfo values (null, ?, ?, ?, ?, ?, ?, ?, now(), 0, null);";
+  const sql = "insert into userinfo values (null, ?, ?, ?, ?, ?, ?, ?, null, null, null, null, null, null, null, null, null, null, now(), 0, null);";
   const params = [req.body.email, req.body.pw, req.body.name, req.body.gender, req.body.birthday, req.body.hAddr, req.body.cAddr];
 
   conn.query(sql, params, (err, rows) => {
@@ -326,6 +326,7 @@ router.post("/chatbotUpdate", (req, res) => {
   console.log("music: " + req.body.music);
   console.log("food: " + req.body.food);
   console.log("drink: " + req.body.drink);
+  let email = req.body.email;
   let wake = req.body.wake;
   let startwork = req.body.startwork;
   let lunch = req.body.lunch;
@@ -348,7 +349,7 @@ router.post("/chatbotUpdate", (req, res) => {
   music=?,
   food=?,
   drink=?
-  WHERE pk="1";`;
+  WHERE email=?`;
   conn.query(
     sql,
     [
@@ -362,6 +363,7 @@ router.post("/chatbotUpdate", (req, res) => {
       music,
       food,
       drink,
+      email
     ],
     (err, rows) => {
       console.log("컨쿼리진입");
