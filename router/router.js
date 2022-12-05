@@ -264,7 +264,7 @@ router.post('/lifeConcierge/api/UpdateEvent', (req, res) => {
   const color = req.body.color;
   const cateList = JSON.stringify(req.body.cateList);
   const eventId = req.body.event_id;
-  console.log(sLocation, eLocation);
+  console.log(sLocation, eLocation, cateList);
 
   if (sLocation && eLocation) {
     const result = spawn("python", ["map.py", sLocation, eLocation]);
@@ -298,6 +298,29 @@ router.post('/lifeConcierge/api/UpdateEvent', (req, res) => {
       })
   
     });
+  } else {
+    const moveTime = null
+    const params = [start, sTime, end, eTime, title, sLocation, eLocation, moveTime,
+      content, preAlarm, checkSpecial, tag, color, cateList, eventId].map(
+        (data) => {
+          return data ? data : null
+        }
+      );
+
+    const sql = `update specialevent set start=?, sTime=?, end=?, eTime=?, 
+                title=?, sLocation=?, eLocation=?, moveTime=?, content=?, preAlarm=?,
+                checkSpecial=?, tag=?, color=?, cateList=?
+                where event_id=?`;
+    conn.query(sql, params, (err, rows) => {
+      if (err) {
+        res.send(err);
+      } else if (rows.length == 0) {
+        console.log("DB 적용 안됨");
+        res.send("DB 적용 안됨");
+      } else {
+        res.json(rows);
+      }
+    })
   }
 }
 )
