@@ -1,11 +1,7 @@
 const { spawn } = require("child_process");
 const { EDESTADDRREQ } = require("constants");
 const express = require("express");
-<<<<<<< HEAD
-const conn = require("../config")
-=======
 const conn = require("../config");
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
 const router = express.Router();
 
 router.post("/lifeConcierge/api/signup", (req, res) => {
@@ -30,11 +26,13 @@ router.post("/lifeConcierge/api/login", (req, res) => {
   const email = req.body.email;
   const pw = req.body.pw;
   console.log(`전달받은 email : ${email}, pw : ${pw}`);
+  console.log(typeof email, typeof pw);
   const sql = 'select * from userinfo where email=? and pw=?';
 
   conn.query(sql, [email, pw], (err, rows) => {
     if (err) {
-      console.log("에러 발생");
+      console.log(err);
+      res.json("error")
     } else if (rows.length == 0) {
       console.log('id가 없습니다.');
       res.json("NoneId");
@@ -93,53 +91,13 @@ router.post('/lifeConcierge/api/addEvent', (req, res) => {
   const start = req.body.start;
   const sTime = req.body.sTime;
   const end = req.body.end;
-<<<<<<< HEAD
-=======
   const eTime = req.body.eTime;
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
   const title = req.body.title;
   const sLocation = req.body.sLocation;
   const eLocation = req.body.eLocation;
   const content = req.body.content;
   const preAlarm = req.body.preAlarm;
   const checkSpecial = req.body.checkSpecial;
-<<<<<<< HEAD
-  const tag = JSON.stringify(req.body.tag);
-  const tag2 = JSON.stringify(req.body.tag2);
-  const cateList = JSON.stringify(req.body.cateList);
-  const checkWeeks = JSON.stringify(req.body.checkWeeks);
-  
-  const confirm = [email, start, end, title, sLocation, eLocation, content, preAlarm,  checkSpecial, tag, tag2, cateList, checkWeeks]
-  console.log(confirm)
-  if(req.body.tag.tagName !== '데일리루틴') {
-    const sql = "insert into specialevent values(?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?, ?, ?)";
-    const params = [email, start, end, title, sLocation, eLocation, content, preAlarm, checkSpecial, tag, tag2, cateList];
-    conn.query(sql, params, (err, rows)=>{
-      if(err){
-        console.log(err);
-        res.send("에러");
-      } else if (rows.length == 0) {
-        console.log("DB 적용 안됌");
-        res.send("DB 적용 안됌");
-      } else {
-        res.send(rows);
-      }
-    })
-  } else {
-    const sql = "insert into dailyevent values(?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?, ?, ?)";
-    const params = [email, start, end, title, sLocation, eLocation, content, preAlarm, tag, tag2, cateList, checkWeeks];
-    conn.query(sql, params, (err, rows)=>{
-      if(err){
-        console.log(err);
-        res.send("에러");
-      } else if (rows.length == 0) {
-        console.log("DB 적용 안됌");
-        res.send("DB 적용 안됌");
-      } else {
-        res.json(rows);
-      }
-    })
-=======
   const tag = req.body.tag;
   const color = req.body.color;
   const cateList = JSON.stringify(req.body.cateList);
@@ -234,7 +192,6 @@ router.post('/lifeConcierge/api/addEvent', (req, res) => {
         }
       });
     }
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
   }
 
 });
@@ -378,41 +335,11 @@ router.get("/test", (req, res) => {
 
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
 /* 세형 */
 
 /* 챗봇으로 성향정보 수정하기 */
 router.post("/chatbotUpdate", (req, res) => {
   console.log("chatbotUpdate 라우터 진입");
-<<<<<<< HEAD
-  console.log("이름: " + req.body.name);
-  console.log("성별: " + req.body.gender);
-  console.log("나이: " + req.body.age);
-
-  let name = req.body.name;
-  let gender = req.body.gender;
-  let age = req.body.age;
-
-  let sql = `
-  UPDATE sessions 
-  SET start=?, 
-  end=?,
-  color=?
-  WHERE pid="1";
-  `;
-  conn.query(sql, [name, gender, age], (err, rows) => {
-    console.log("컨쿼리진입");
-  });
-});
-/* 맵api라우터 */
-router.post('/map', function (req, res) {    
-  console.log('map라우터 진입 성공')
-  /* let userInput = req.query.userInput */
-  let userInput1 = req.body.userInput1 
-=======
   console.log("wake: " + req.body.wake);
   console.log("startwork: " + req.body.startwork);
   console.log("lunch: " + req.body.lunch);
@@ -475,27 +402,10 @@ router.post('/map', function (req, res) {
   console.log('map라우터 진입 성공')
   /* let userInput = req.query.userInput */
   let userInput1 = req.body.userInput1
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
   let userInput2 = req.body.userInput2
   console.log(`유저인풋1 : ${userInput1}, 유저인풋2 : ${userInput2}`)
   //const result = spawn("python3", ["map.py",[userInput1,userInput2]]);
   //const result = spawn("python3", ["map.py"]);
-<<<<<<< HEAD
- // const result = spawn("python", ["map.py"]);
-  const result = spawn("python", ["map.py",userInput1,userInput2]);
-  console.log('파이썬 파일 변수 선언 성공') 
-  result.stdout.on("data", (result) => {  
-    console.log('stdout 진입 성공')
-    console.log('result : ' + result.toString());
-    console.log(`파이썬 파일 변수 선언 성공  |  유저인풋1 : ${userInput1}, 유저인풋2 : ${userInput2}`)
-    res.json(result.toString())
-    //res.json(result.toString().slice(0,(result.toString().length-6)))
-
-  }) 
-});
-/* 맵api test라우터 */
-router.get('/maptest', function (req, res) {    
-=======
   // const result = spawn("python", ["map.py"]);
   const result = spawn("python", ["map.py", userInput1, userInput2]);
   console.log('파이썬 파일 변수 선언 성공')
@@ -510,7 +420,6 @@ router.get('/maptest', function (req, res) {
 });
 /* 맵api test라우터 */
 router.get('/maptest', function (req, res) {
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
   console.log('메인라우터 진입 성공')
   //일단로컬로
   res.redirect("http://127.0.0.1:5500/server/maptest.html")
@@ -518,8 +427,31 @@ router.get('/maptest', function (req, res) {
 
 
 
-<<<<<<< HEAD
-=======
+router.post('/memoCreate',(req, res)=>{
+  const email = req.body.email;
+  const title = req.body.title;
+  const content = req.body.content;
+  const sql = 'insert into values(null, ?, ?, ?)';
+  conn.query(sql, [email,title,content], (err, rows)=>{
+    rows
+  })
+})
 
->>>>>>> cbbff548629b95213003c7df5fb972a8ecf6c4a4
+router.post('/memoUpdate',(req, res)=>{
+  const email = req.body.email;
+  const title = req.body.title;
+  const content = req.body.content;
+  const sql = 'insert into values(null, ?, ?, ?)';
+  conn.query(sql, [email,title,content], (err, rows)=>{
+    rows
+  })
+})
+
+router.get('/memoDelete',(req, res)=>{
+  const sql = 'DELETE FROM Customers WHERE CustomerName=;';
+  conn.query(sql, [email,title,content], (err, rows)=>{
+    rows
+  })
+})
+
 module.exports = router;
